@@ -1,0 +1,5 @@
+* Commands
+** Run
+  #+BEGIN_SRC shell
+  cargo run
+  #+END_SRC

@@ -1,0 +1,26 @@
+* About
+kree is a keyboard shortcut tool. It is a mashing together of the words key and
+tree.
+
+* Language
+I don't want to run into any performance issues, so I'm doing it in rust. For
+me it's a bit of a challenge as I'm not practiced in using the lower level
+
+* X11 first
+  I use linux, which means I use X11. Not sure if there are other display servers, but
+  since it's what I rely on I am writing this at first with X11 in mind. I will, however,
+  try to implement it to add support for other operating systems.
+** Library Options
+*** XCB
+    Geared toward performance and has async support, seems like a 'better' option.
+*** XLib
+    More full featured, but can be synchronous... idk, going to skip this one :)
+*** xkb
+    This popped up in some of my searches - I think XKB /just/ relates to keyboard
+    data. Just noting it here for later
+
+* Reference projects
+ Examples:
+ 1. https://github.com/happenslol/tidy
+ 2. https://github.com/YangKeao/oscillator
+ 3. https://github.com/AntonyBlakey/commando

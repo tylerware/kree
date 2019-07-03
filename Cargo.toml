@@ -1,0 +1,13 @@
+[package]
+name = "kree"
+version = "0.1.0"
+authors = ["Tyler Ware <tyler.ware.777@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+x11 = { version = "*", features = ["xlib", "xinerama"] }
+# xdg = "2.2"
+xcb = { version = "0.8", features = ["randr"] }
+xcb-util = { version = "0.2", features = ["icccm", "ewmh", "keysyms"] }
+serde = "1.0"
+serde_yaml = "0.8"

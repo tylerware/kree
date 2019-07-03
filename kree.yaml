@@ -1,0 +1,6 @@
+mappings:
+  a:
+    f: firefox
+    c: chromium
+  t: i3.dd tmux.scratch
+  shift+x: echo "Hello, world!"
