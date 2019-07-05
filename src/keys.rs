@@ -1,5 +1,6 @@
 use std::{os::raw::c_uint};
 use x11::xlib;
+use x11::keysym::*;
 use std::ffi::CString;
 use serde_yaml::Mapping;
 
@@ -42,8 +43,10 @@ pub fn get_keycode_from_string(key: String) -> c_uint {
 pub fn parse_key_chord(key_chord: String) -> (c_uint, Vec<Mod>) {
     let split_chord = key_chord.split("+").collect::<Vec<&str>>();
 
+    println!("Key chord: {:?}", key_chord);
+
     let mut modifiers: Vec<Mod> = vec![];
-    let mut key: String = String::new();
+    let mut key: c_uint = 0;
     for part in split_chord {
         let part = part.to_lowercase();
 
@@ -59,14 +62,22 @@ pub fn parse_key_chord(key_chord: String) -> (c_uint, Vec<Mod>) {
         else if part == "alt" {
             modifiers.push(Mod::Alt);
         }
+        else if part == "caps" || part == "capslock"  {
+            modifiers.push(Mod::Caps);
+        }
+        else if part == "space" || part == "spc"  {
+            key = get_keycode_from_string("space".to_string());
+        }
+        else if part == "enter" || part == "return" {
+            key = XK_Return;
+        }
         else {
-            key = part;
+            key = get_keycode_from_string(part);
         }
     }
 
-    println!("Key: {}, Modifiers: {:?}", key, modifiers);
 
-    (get_keycode_from_string(key), modifiers)
+    (key, modifiers)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

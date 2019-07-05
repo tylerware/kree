@@ -1,3 +1,4 @@
+use xcb;
 use std::collections::HashMap;
 use xcb_util::{ewmh, icccm, keysyms::KeySymbols};
 use crate::keys::{self, Command, KeyCombo};
@@ -11,23 +12,63 @@ pub struct Client {
     pub screen_idx: i32,
 
     pub keymap: HashMap<keys::KeyCombo, keys::Command>,
+
+    pub last_pressed: KeyCombo,
 }
 
 impl Client {
     pub fn open_connection() -> Self {
-        let (connection, screen_idx) = xcb::Connection::connect(None).unwrap();
+        println!("Opening connection...");
+        let (connection, screen_idx) = xcb::Connection::connect(None).expect("Failed to start xcb connection");
         let connection = ewmh::Connection::connect(connection)
-            .map_err(|(e, _)| e).unwrap();
+            .map_err(|(e, _)| e).expect("Failed to start ewmh connection");
 
         let root_window = connection.get_setup()
             .roots().nth(screen_idx as usize)
-            .ok_or("Invalid screen").unwrap().root();
+            .ok_or("Invalid screen").expect("Failed to get setup...").root();
 
         Self {
             connection,
             screen_idx,
             root_window,
             keymap: HashMap::new(),
+            last_pressed: KeyCombo {
+                mods: 0,
+                key: 0,
+                event: keys::Event::KeyDown
+            }
+        }
+    }
+
+    // xcb::GRAB_ANY as u8,
+    pub fn register_keyboard(&mut self) {
+        xcb::grab_keyboard(
+            &self.connection,
+            false,
+            self.root_window,
+            xcb::CURRENT_TIME,
+            xcb::GRAB_MODE_ASYNC as u8,
+            xcb::GRAB_MODE_ASYNC as u8,
+        );
+    }
+
+    pub fn unregister_keyboard(&mut self) {
+        xcb::ungrab_keyboard(
+            &self.connection,
+            xcb::CURRENT_TIME
+        );
+    }
+
+    pub fn register_keymap(
+        &mut self,
+        keybinds: Vec<(KeyCombo, Command)>
+    ) {
+        let symbols = KeySymbols::new(&self.connection);
+        self.keymap = HashMap::new();
+
+        for (combo, command) in keybinds {
+            self.keymap.insert(combo, command);
+            println!("Combo key: {}", combo.key);
         }
     }
 
@@ -70,14 +111,30 @@ impl Client {
                     let key = syms.press_lookup_keysym(event, 0);
                     let mods = u32::from(event.state());
 
-                    println!("{:?} {:?} PRESS",
+                    println!("{:?} {:?} {:?} PRESS",
                              SystemTime::now().duration_since(UNIX_EPOCH).unwrap(),
-                             key);
+                             key, mods);
 
 
                     let combo = KeyCombo { mods, key, event: keys::Event::KeyDown };
+                    self.last_pressed = combo;
                     if let Some(command) = self.keymap.get(&combo) {
                         return Event::Command(command.clone());
+                    }
+                    // Key combo is not in the map or pressed modifier
+                    //             Super_L         Super_R                   Caps            Shift_L         Shift_R         Alt_L           Alt_R
+                    else if key != 65515 && key != 65515
+                    //             Ctrl_L          Ctrl_R
+                         && key != 65507 && key != 65508
+                    //             Caps            Function
+                         && key != 65509 && key != 269025067
+                    //             Shift_L         Shift_R
+                         && key != 65505 && key != 65506
+                    //             Alt_L           Alt_R
+                         && key != 65513 && key != 65514
+                    {
+                        let command = Command::Noop();
+                        return Event::Command(command);
                     }
                 },
                 xcb::KEY_RELEASE => {
@@ -86,14 +143,19 @@ impl Client {
                     let key = syms.press_lookup_keysym(event, 0);
                     let mods = u32::from(event.state());
 
-                    println!("{:?} {:?} RELEASE",
+                    println!("Last pressed {:?}", self.last_pressed);
+                    println!("{:?} {:?} {:?} RELEASE",
                              SystemTime::now().duration_since(UNIX_EPOCH).unwrap(),
-                             key);
+                             key, mods);
 
                     let combo = KeyCombo { mods, key, event: keys::Event::KeyUp };
                     if let Some(command) = self.keymap.get(&combo) {
                         return Event::Command(command.clone());
                     }
+                    // else if && key == last_pressed.key {
+                    //     let command = Command::Noop();
+                    //     return Event::Command(command);
+                    // }
                 },
                 _ => {},
             }
