@@ -13,7 +13,6 @@ pub struct Client {
 
     pub keymap: HashMap<keys::KeyCombo, keys::Command>,
 
-    pub last_pressed: KeyCombo,
 }
 
 impl Client {
@@ -32,11 +31,6 @@ impl Client {
             screen_idx,
             root_window,
             keymap: HashMap::new(),
-            last_pressed: KeyCombo {
-                mods: 0,
-                key: 0,
-                event: keys::Event::KeyDown
-            }
         }
     }
 
@@ -117,12 +111,11 @@ impl Client {
 
 
                     let combo = KeyCombo { mods, key, event: keys::Event::KeyDown };
-                    self.last_pressed = combo;
                     if let Some(command) = self.keymap.get(&combo) {
                         return Event::Command(command.clone());
                     }
                     // Key combo is not in the map or pressed modifier
-                    //             Super_L         Super_R                   Caps            Shift_L         Shift_R         Alt_L           Alt_R
+                    //             Super_L         Super_R
                     else if key != 65515 && key != 65515
                     //             Ctrl_L          Ctrl_R
                          && key != 65507 && key != 65508
@@ -143,7 +136,6 @@ impl Client {
                     let key = syms.press_lookup_keysym(event, 0);
                     let mods = u32::from(event.state());
 
-                    println!("Last pressed {:?}", self.last_pressed);
                     println!("{:?} {:?} {:?} RELEASE",
                              SystemTime::now().duration_since(UNIX_EPOCH).unwrap(),
                              key, mods);
@@ -152,10 +144,6 @@ impl Client {
                     if let Some(command) = self.keymap.get(&combo) {
                         return Event::Command(command.clone());
                     }
-                    // else if && key == last_pressed.key {
-                    //     let command = Command::Noop();
-                    //     return Event::Command(command);
-                    // }
                 },
                 _ => {},
             }

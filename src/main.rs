@@ -26,6 +26,7 @@ fn main() {
 
     loop {
         use client::Event::*;
+
         use keys::Command::*;
 
         match client.poll() {
@@ -35,17 +36,18 @@ fn main() {
                     // Root keybinds
                     client.register_keybinds(keybinds().expect("Failed to get root keybindings."));
 
-                    println!("Attempting to spawn: {}", to_spawn);
                     let to_spawn = String::from(to_spawn);
                     let mut to_spawn_split = to_spawn.split_whitespace();
 
                     let executable = to_spawn_split.nth(0).unwrap();
                     let params = to_spawn_split.collect::<Vec<_>>();
 
-                    process::Command::new(executable)
+                    match process::Command::new(executable)
                         .args(&params)
-                        .spawn()
-                        .expect("Failed to spawn cmd");
+                        .spawn() {
+                            Ok(_) => println!("Spawning: {}", to_spawn),
+                            Err(error) => println!("Failed to spawn: {:?}", error),
+                        }
 
                 },
                 Mapping(keymap) => {
@@ -67,7 +69,7 @@ fn main() {
 
 fn keybinds() -> Result<Vec<(keys::KeyCombo, keys::Command)>, serde_yaml::Error> {
     let mut content = String::new();
-    match File::open("/home/tware/Projects/kree/kree.yaml") {
+    match File::open("/home/tware/.kree.yaml") {
         // The file is open (no error).
         Ok(mut file) => {
             // Read all the file content into a variable
@@ -80,7 +82,7 @@ fn keybinds() -> Result<Vec<(keys::KeyCombo, keys::Command)>, serde_yaml::Error>
     }
 
     let yaml_doc: HashMap<String, Value> = serde_yaml::from_str(&content).unwrap();
-    parse_keymap(yaml_doc.get("mappings").unwrap().as_mapping().unwrap())
+    parse_keymap(yaml_doc.get("global").unwrap().as_mapping().unwrap())
 }
 
 fn parse_keymap(raw_keymap: &Mapping) -> Result<Vec<(keys::KeyCombo, keys::Command)>, serde_yaml::Error> {
