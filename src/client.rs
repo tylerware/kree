@@ -15,6 +15,8 @@ pub struct Client {
 
 }
 
+
+
 impl Client {
     pub fn open_connection() -> Self {
         println!("Opening connection...");
@@ -55,39 +57,35 @@ impl Client {
 
     pub fn register_keymap(
         &mut self,
-        keybinds: Vec<(KeyCombo, Command)>
+        keybinds: Vec<(KeyCombo, Command)>,
+        full_grab: bool
     ) {
-        let symbols = KeySymbols::new(&self.connection);
-        self.keymap = HashMap::new();
-
-        for (combo, command) in keybinds {
-            self.keymap.insert(combo, command);
-            println!("Combo key: {}", combo.key);
+        if full_grab {
+            self.register_keyboard();
         }
-    }
+        else {
+            self.unregister_keyboard();
+        }
 
-    pub fn register_keybinds(
-        &mut self,
-        keybinds: Vec<(KeyCombo, Command)>
-    ) {
         let symbols = KeySymbols::new(&self.connection);
-
         for (combo, command) in keybinds {
             self.keymap.insert(combo, command);
             println!("Combo key: {}", combo.key);
 
-            if let Some(code) = symbols.get_keycode(combo.key).next() {
-                xcb::grab_key(
-                    &self.connection,
-                    false,
-                    self.root_window,
-                    combo.mods as u16,
-                    code,
-                    // xcb::MOD_MASK_ANY as u16,
-                    // xcb::GRAB_ANY as u8,
-                    xcb::GRAB_MODE_ASYNC as u8,
-                    xcb::GRAB_MODE_ASYNC as u8,
-                );
+            if !full_grab {
+                if let Some(code) = symbols.get_keycode(combo.key).next() {
+                    xcb::grab_key(
+                        &self.connection,
+                        false,
+                        self.root_window,
+                        combo.mods as u16,
+                        code,
+                        // xcb::MOD_MASK_ANY as u16,
+                        // xcb::GRAB_ANY as u8,
+                        xcb::GRAB_MODE_ASYNC as u8,
+                        xcb::GRAB_MODE_ASYNC as u8,
+                    );
+                }
             }
         }
     }

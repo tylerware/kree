@@ -21,7 +21,7 @@ fn main() {
     println!("Starting kree...");
     let mut client = Client::open_connection();
     println!("Registering keybinds...");
-    client.register_keybinds(keybinds().unwrap());
+    client.register_keymap(keybinds().unwrap(), false);
 
 
     loop {
@@ -32,9 +32,8 @@ fn main() {
         match client.poll() {
             Command(cmd) => match cmd {
                 Spawn(to_spawn) => {
-                    client.unregister_keyboard();
-                    // Root keybinds
-                    client.register_keybinds(keybinds().expect("Failed to get root keybindings."));
+                    // Root keymap
+                    client.register_keymap(keybinds().unwrap(), false);
 
                     let to_spawn = String::from(to_spawn);
                     let mut to_spawn_split = to_spawn.split_whitespace();
@@ -52,15 +51,12 @@ fn main() {
                 },
                 Mapping(keymap) => {
                     println!("Handle keymap: {:?}", keymap);
-                    client.register_keyboard();
-                    client.register_keymap(parse_keymap(&keymap).unwrap());
+                    client.register_keymap(parse_keymap(&keymap).unwrap(), true);
                 }
                 Noop() => {
                     println!("No operation");
-                    // No longer capture every key press
-                    client.unregister_keyboard();
-                    // Root keybinds
-                    client.register_keybinds(keybinds().unwrap());
+                    // Root keymap
+                    client.register_keymap(keybinds().unwrap(), false);
                 }
             }
         }
