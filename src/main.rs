@@ -5,6 +5,9 @@
 use serde_yaml;
 use serde_yaml::{Value, Mapping};
 
+use dirs;
+use std::path::{Path};
+
 use std::fs::File;
 use std::io::Read;
 use std::process;
@@ -65,7 +68,9 @@ fn main() {
 
 fn keybinds() -> Result<Vec<(keys::KeyCombo, keys::Command)>, serde_yaml::Error> {
     let mut content = String::new();
-    match File::open("/home/tware/.kree.yaml") {
+
+    let config_file_path = Path::new(&dirs::home_dir().unwrap()).join(".kree.yaml");
+    match File::open(config_file_path) {
         // The file is open (no error).
         Ok(mut file) => {
             // Read all the file content into a variable
