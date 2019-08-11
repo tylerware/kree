@@ -1,9 +1,11 @@
 use xcb;
 use std::collections::HashMap;
-use xcb_util::{ewmh, icccm, keysyms::KeySymbols};
+use xcb_util::{ewmh, keysyms::KeySymbols};
 use crate::keys::{self, Command, KeyCombo};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+
+// TODO Rename / repurpose to be just X11 support
 
 pub struct Client {
     pub connection: ewmh::Connection,
