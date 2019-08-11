@@ -1,0 +1,30 @@
+* Keymaps
+** Global Keymap
+   The global keymap is available at all times.
+*** Config
+    The global keymap is defined by the =global= key at the top-level in your yaml config. For example:
+   #+BEGIN_EXAMPLE yaml
+     global:
+       a:
+         f: firefox
+         e: emacs
+   #+END_EXAMPLE
+** Conditional Keymaps
+   An conditional keymap is a keymap that is only active when a particular
+   condition is met. For example, when firefox is open you have a set of
+   keymappings that are only active when firefox is active.
+*** Config
+    Conditional keymaps are defined under the =conditional= key at the top-level of your yaml config.
+    An individual conditional keymap is defined by an object wiht two keys =trigger= and =map=.
+    =map= is the keymap itself and =trigger=, which contains the condition to trigger the keymap.
+    #+BEGIN_EXAMPLE yaml
+      condtional:
+        - trigger: { class: firefox }
+          map:
+            alt+o:
+              g: firefox google.com
+    #+END_EXAMPLE
+** Keymap precedence
+   If two keymaps use the same key, then there needs to be rules as to which one 'wins'. There are two rules:
+   1. The more specific keymap wins (ie: the global keymap applies everywhere)
+   2. If any two keymaps are the same specificty the last one declared wins
