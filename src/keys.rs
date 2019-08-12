@@ -2,15 +2,15 @@ use std::{os::raw::c_uint};
 use x11::xlib;
 use x11::keysym::*;
 use std::ffi::CString;
-use serde_yaml::Mapping;
+use serde_yaml::Value;
 
 pub type ModMaskCode = c_uint;
 pub type KeyCode = c_uint;
 
 #[derive(Debug, Clone)]
 pub enum Command {
-    Spawn(String),
-    Mapping(Mapping),
+    Spawn(Value),
+    Mapping(Value),
     Noop()
 }
 
