@@ -4,7 +4,7 @@ use serde_yaml;
 use serde_yaml::Value;
 
 use dirs;
-use std::path::{Path};
+use std::path::{Path, PathBuf};
 
 use std::fs::File;
 use std::io::Read;
@@ -28,13 +28,97 @@ pub struct Kree {
 }
 
 impl Kree {
-    pub fn start() {
+    pub fn start(config_paths: Vec<String>) {
         println!("Starting kree...");
 
-        let mut kree = Self::new_from_config();
+        let merged_config = Self::merge_configs(config_paths).unwrap();
+        let mut kree = Self::new_from_config(merged_config);
         kree.listen();
-
     }
+
+    pub fn merge_configs(config_paths: Vec<String>) -> Result<HashMap<String, Value>, ()> {
+        let mut configs = config_paths.iter().map(|config_path| Self::get_config(Path::new(config_path).to_path_buf()).unwrap()).collect::<Vec<_>>();
+        let config_path = Path::new(&dirs::home_dir().unwrap()).join(".kree.yaml");
+        let default_config = Self::get_config(config_path).unwrap();
+        configs.insert(0, default_config);
+
+
+        let merged_config = Self::merge_yaml_recurse(configs.clone()).unwrap();
+        Ok(merged_config)
+    }
+
+    pub fn merge_yaml_recurse(configs: Vec<HashMap<String, Value>>) -> Result<HashMap<String, Value>, ()> {
+
+
+        let mut aggregate_config: HashMap<String, Vec<Value>> = HashMap::new();
+
+        // To determine duplicate keys loop over each config and record
+        // TODO: This needs to be improved to handle keys.. right now this is a simple merge
+        //       Cmd+x != Super+x, which it should.. or Shift+Alt+x != Alt+Shift+x
+        //       For now, I can live with it, but I'll want to improve this.
+        //       Likely, I'll need to manually call out the areas I want to use
+        //       a smarter merge. The simplest would be in the 'global' key of the config
+        //       However, once I have conditional keymap support I'll want to extend the same
+        //       sort of smart key merge to that.. That's for another day :)
+        for mut config in configs.into_iter().rev() {
+
+            for (key, value) in config.drain() {
+                if aggregate_config.contains_key(&key) {
+                    aggregate_config.get_mut(&key).unwrap().push(value);
+                }
+                else {
+                    aggregate_config.insert(key, vec![value]);
+                }
+            }
+        }
+        println!("aggregate_config: {:?}", aggregate_config);
+
+
+        let mut merged_config: HashMap<String, Value> = HashMap::new();
+        for (key, mut values) in aggregate_config.drain() {
+            let value_count = values.len();
+            // If there is only one key at this level, then we don't need to merge
+            if value_count == 1 {
+                let value = values.pop().unwrap();
+                merged_config.insert(key, value);
+            }
+            else if value_count > 1 {
+                // let value = values.clone().pop().unwrap();
+                // merged_config.insert(key, value);
+
+                let mut mappings_to_merge: Vec<HashMap<String, Value>> = vec![];
+                for value in values.iter() {
+                    // We only want to merge mappings
+                    if value.is_mapping() {
+                        mappings_to_merge.push(serde_yaml::from_value(value.clone()).unwrap());
+                    }
+                    else {
+                        break;
+                    }
+                }
+
+                let mut merged_value: Value;
+                let mappings_to_merge_count = mappings_to_merge.len();
+                if mappings_to_merge_count > 1 {
+                    println!("Mappings to merge: {:?}", mappings_to_merge);
+
+                    merged_value = serde_yaml::to_value(Self::merge_yaml_recurse(mappings_to_merge).unwrap()).unwrap();
+                }
+                else {
+                    // No mappings to merge
+                    merged_value = values.pop().unwrap();
+                }
+
+
+                merged_config.insert(key, merged_value);
+            }
+        }
+        println!("merged_config: {:?}", merged_config);
+
+        Ok(merged_config)
+    }
+
+
 
     pub fn listen(&mut self) {
         loop {
@@ -72,12 +156,10 @@ impl Kree {
         }
     }
 
-    pub fn new_from_config() -> Self {
-        let config = Self::get_config().unwrap();
+    pub fn new_from_config(config: HashMap<String, Value>) -> Self {
         println!("Config {:?}", config);
 
         let global_keymap = Self::parse_keymap(&serde_yaml::from_value(config.get("global").unwrap().clone()).unwrap()).unwrap();
-
 
         let mut conditional_keymaps: Vec<(Trigger, Vec<(keys::KeyCombo, keys::Command)>)> = vec![];
         if config.contains_key("conditional") {
@@ -124,10 +206,9 @@ impl Kree {
         instance
     }
 
-    fn get_config() -> Result<HashMap<String, Value>, ()> {
+    fn get_config(config_file_path: PathBuf) -> Result<HashMap<String, Value>, ()> {
         let mut content = String::new();
 
-        let config_file_path = Path::new(&dirs::home_dir().unwrap()).join(".kree.yaml");
         match File::open(config_file_path) {
             // The file is open (no error).
             Ok(mut file) => {
