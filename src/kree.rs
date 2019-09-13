@@ -28,6 +28,7 @@ pub struct Kree {
 }
 
 impl Kree {
+
     pub fn start(config_paths: Vec<String>) {
         println!("Starting kree...");
 
@@ -117,8 +118,6 @@ impl Kree {
 
         Ok(merged_config)
     }
-
-
 
     pub fn listen(&mut self) {
         loop {
@@ -249,6 +248,9 @@ impl Kree {
         Ok(keymap)
     }
 
+    /*
+     * Helper that generates a Trigger from a HashMap that came from the config
+     */
     fn parse_trigger(raw_trigger: &HashMap<String, String>) -> Result<Trigger, serde_yaml::Error> {
         let mut trigger = Trigger {
             class: "".to_string()
@@ -261,4 +263,18 @@ impl Kree {
         Ok(trigger)
     }
 
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_trigger() {
+        let mut raw_trigger: HashMap<String, String> = HashMap::new();
+        raw_trigger.insert("class".to_string(), "test-class".to_string());
+
+        assert_eq!(Kree::parse_trigger(&raw_trigger).unwrap().class, "test-class".to_string());
+    }
 }
