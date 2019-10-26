@@ -126,15 +126,14 @@ impl Kree {
                     Spawn(to_spawn) => {
                         // Root keymap
                         self.client.register_keymap(self.global_keymap.clone(), false);
-
                         let to_spawn: String = serde_yaml::from_value(to_spawn).unwrap();
                         let mut to_spawn_split = to_spawn.split_whitespace();
 
                         let executable = to_spawn_split.nth(0).unwrap();
-                        let params = to_spawn_split.collect::<Vec<_>>();
+                        let params = to_spawn_split.collect::<Vec<_>>().join(" ");
 
                         match process::Command::new(executable)
-                            .args(&params)
+                            .arg(&params)
                             .spawn() {
                                 Ok(_) => println!("Spawning: {}", to_spawn),
                                 Err(error) => println!("Failed to spawn: {:?}", error),
