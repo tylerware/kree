@@ -127,17 +127,25 @@ impl Kree {
                         // Root keymap
                         self.client.register_keymap(self.global_keymap.clone(), false);
                         let to_spawn: String = serde_yaml::from_value(to_spawn).unwrap();
-                        let mut to_spawn_split = to_spawn.split_whitespace();
 
-                        let executable = to_spawn_split.nth(0).unwrap();
-                        let params = to_spawn_split.collect::<Vec<_>>().join(" ");
+                        if cfg!(target_os = "windows") {
+                            match process::Command::new("cmd")
+                                .arg("/C")
+                                .arg(&to_spawn)
+                                .spawn() {
+                                    Ok(_) => println!("Spawning: {}", to_spawn),
+                                    Err(error) => println!("Failed to spawn: {:?}", error),
+                                }
+                        } else {
+                            match process::Command::new("sh")
+                                .arg("-c")
+                                .arg(&to_spawn)
+                                .spawn() {
+                                    Ok(_) => println!("Spawning: {}", to_spawn),
+                                    Err(error) => println!("Failed to spawn: {:?}", error),
+                                }
+                        }
 
-                        match process::Command::new(executable)
-                            .arg(&params)
-                            .spawn() {
-                                Ok(_) => println!("Spawning: {}", to_spawn),
-                                Err(error) => println!("Failed to spawn: {:?}", error),
-                            }
 
                     },
                     Mapping(keymap) => {
