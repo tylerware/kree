@@ -59,6 +59,9 @@ pub fn parse_key_chord(key_chord: String) -> (c_uint, Vec<Mod>) {
         else if part == "super" || part == "command" || part == "cmd" || part == "win" {
             modifiers.push(Mod::Super);
         }
+        else if part == "hyper" {
+            modifiers.push(Mod::Hyper);
+        }
         else if part == "alt" {
             modifiers.push(Mod::Alt);
         }
@@ -87,6 +90,7 @@ pub enum Mod {
     Control,
     Alt,
     Super,
+    Hyper,
 }
 
 impl std::ops::Deref for Mod {
@@ -99,6 +103,7 @@ impl std::ops::Deref for Mod {
             Control => &xcb::MOD_MASK_CONTROL,
             Alt => &xcb::MOD_MASK_1,
             Super => &xcb::MOD_MASK_4,
+            Hyper => &xcb::MOD_MASK_3,
         }
     }
 }
