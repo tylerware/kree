@@ -62,6 +62,8 @@ impl Client {
         keybinds: Vec<(KeyCombo, Command)>,
         full_grab: bool
     ) {
+        self.keymap.clear();
+
         if full_grab {
             self.register_keyboard();
         }
