@@ -39,17 +39,17 @@ impl Kree {
 
     pub fn merge_configs(config_paths: Vec<String>) -> Result<HashMap<String, Value>, ()> {
         let mut configs = config_paths.iter().map(|config_path| Self::get_config(Path::new(config_path).to_path_buf()).unwrap()).collect::<Vec<_>>();
+        // TODO: Should likely make the default /ONLY/ apply if no configs were passed
         let config_path = Path::new(&dirs::home_dir().unwrap()).join(".kree.yaml");
         let default_config = Self::get_config(config_path).unwrap();
         configs.insert(0, default_config);
 
 
-        let merged_config = Self::merge_yaml_recurse(configs.clone()).unwrap();
+        let merged_config = Self::merge_map_recurse(configs.clone()).unwrap();
         Ok(merged_config)
     }
 
-    pub fn merge_yaml_recurse(configs: Vec<HashMap<String, Value>>) -> Result<HashMap<String, Value>, ()> {
-
+    pub fn merge_map_recurse(configs: Vec<HashMap<String, Value>>) -> Result<HashMap<String, Value>, ()> {
 
         let mut aggregate_config: HashMap<String, Vec<Value>> = HashMap::new();
 
@@ -103,7 +103,7 @@ impl Kree {
                 if mappings_to_merge_count > 1 {
                     println!("Mappings to merge: {:?}", mappings_to_merge);
 
-                    merged_value = serde_yaml::to_value(Self::merge_yaml_recurse(mappings_to_merge).unwrap()).unwrap();
+                    merged_value = serde_yaml::to_value(Self::merge_map_recurse(mappings_to_merge).unwrap()).unwrap();
                 }
                 else {
                     // No mappings to merge
