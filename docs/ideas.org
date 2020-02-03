@@ -1,0 +1,82 @@
+#+TITLE: Ideas
+
+* Table of Contents :TOC_3:noexport:
+- [[#visual][Visual]]
+  - [[#basic-indicator][Basic Indicator]]
+  - [[#menu--help][Menu / help]]
+- [[#states--modes][States / Modes]]
+  - [[#vim-like][Vim-like]]
+  - [[#emacs-like-major-modes][Emacs-like major modes]]
+  - [[#transient-states-sticky-keymap][Transient states (sticky keymap)]]
+- [[#dsl][DSL]]
+- [[#config][Config]]
+  - [[#live--dynamic][Live / Dynamic]]
+  - [[#inheritance-rules-extension--overriding][Inheritance rules: extension & overriding]]
+  - [[#action-definitions][Action definitions]]
+  - [[#executable-configuration][Executable configuration]]
+  - [[#handle-uris][Handle URIs]]
+- [[#os-independent][OS independent]]
+- [[#special-actions][Special actions]]
+
+* Visual
+** Basic Indicator
+Basic visual indicator of what's going on under the hood. Perhaps which key was pressed or documentation
+on the current 'mode'
+** Menu / help
+More detailed UI. Similar to hydras & which key in emacs. Can be used to
+indicate options. Could be handy for key maps that are rarely used.
+* States / Modes
+** Vim-like
+Imagine some modes analagous to vim's normal mode and vim's insert mode. When in normal mode, you can
+perform editting actions on the text and in insert mode you can (like any other editor) type new text.
+
+A normal mode for OS level things would essentially block all input to the active application / window
+and off some quick shortcuts to perform OS level operations. Then there would be an 'insert' or 'interact'
+mode.. (name is TBD) that would allow all normal interaction.
+** Emacs-like major modes
+In emacs a minor mode is something that gets activated based on the type of buffer that is currently being
+used. Simply, if you're editting a rust file, the rust major mode is active. The major mode will set new
+keybindings and add other features. I want to bring a similar concept to kree.
+
+Imagine running an application, like inkscape and being able to press a few keys to accomplish some complex,
+inkscape specific task. Now imagine that every application has a set of these keybindings.
+** Transient states (sticky keymap)
+* DSL
+A lot of the reason I'm working on this is to get closer to my dream of having a computer human interface lanuage
+(CHIL) that I can use to get stuff done easily on a computer.
+
+To arrive at that desitation will require some kind of language that the computer can understand. Adding
+some kind of DSL (domain specific language) keychord lanuage could have a lot of value like vims normal mode
+editting DSL.
+* Config
+** Live / Dynamic
+It would be pretty cool to have an API to dynamically load a keymap. For example:
+#+BEGIN_EXAMPLE shell
+kree use-keymap keymap-specific.yaml
+#+END_EXAMPLE
+Which would make keymap-specific.yaml the currently active keymap. Once
+exited, the original root keymap would being active.
+** Inheritance rules: extension & overriding
+Basic idea that part of the keymap definition can be extended or overridden by later config files or sections
+in the current file. This is meant to support shared configuration files and cross platform support. For example,
+the keychord sequence for launching an application should remain the same, but 'how' to do that might differ based
+on OS or WM/DE.
+** Action definitions
+To support potentially various environments and shared configuration a keymap might define an action
+symbol, which is a unique placeholder for what action should occur on fulfillment of the keychord
+sequence. This would seperate notions of keychord sequence doing a thing and how it does it.
+
+Then in another part of the config these action symbols can have a defintion of what they are supposed to do.
+** Executable configuration
+- Allow for piping a list of things in configuration to a command
+- Define fallbacks / OS specific commands
+- Pre-commands / actions
+** Handle URIs
+Allow an action to be a URI. E.g. (open links with the appropriate applications)
+- =https://ddg.gg=
+- =file:///path/to/a/file=
+- =app://cool/deep-link=
+* OS independent
+Today this just supports linux. I wouldn't mind adding support for other operating systems.
+* Special actions
+Similar to vim, there might be some merit to allowing repeating of actions (via .) or something.
