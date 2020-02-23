@@ -98,7 +98,7 @@ impl Kree {
                     }
                 }
 
-                let mut merged_value: Value;
+                let merged_value: Value;
                 let mappings_to_merge_count = mappings_to_merge.len();
                 if mappings_to_merge_count > 1 {
                     println!("Mappings to merge: {:?}", mappings_to_merge);
@@ -240,7 +240,7 @@ impl Kree {
             .filter(|(_key_chord, val)| val.is_string() || val.is_mapping())
             .map(|(key_chord, val)| {
                 let (key, mods) = keys::parse_key_chord(key_chord);
-                let mut command: Command;
+                let command: Command;
                 if val.is_string() {
                     command = Command::Spawn(val);
                 }

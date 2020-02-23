@@ -21,7 +21,7 @@ fn main() {
         .get_matches();
 
 
-    let mut configs: Vec<String>;
+    let configs: Vec<String>;
     match matches.values_of_lossy("config") {
         Some(values) => configs = values,
         None => configs = vec![]
