@@ -137,6 +137,8 @@ impl Kree {
                                     Err(error) => println!("Failed to spawn: {:?}", error),
                                 }
                         } else {
+                            // Run as exec for commands that are non-standard. (e.g. commands that start with a '+' for example)
+                            let to_spawn = "exec ".to_owned() + &to_spawn.clone().to_string();
                             match process::Command::new("sh")
                                 .arg("-c")
                                 .arg(&to_spawn)
