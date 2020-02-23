@@ -1,4 +1,4 @@
-* [WIP] Kree - a key remap utility
+* kree - a key remap utility
   A lot of window managers or desktop enviroments offer ways to map keys.
   This is an attempt to offer a solution that can work with any WM / DE.
 
@@ -12,11 +12,12 @@
    #+BEGIN_SRC shell
      cargo install --force --path .
    #+END_SRC
-   You can run this from your =~/.xinitrc= or =~/.config/i3/config=. For some reason systemd doesn't work...
+   You can run this from your =~/.xinitrc= or =~/.config/i3/config=. For some
+   reason systemd didn't work for me
 * Terminology
 ** Key chord
 ** Key sequence
-** Computer human interface lanuage
+** Computer human interface language
 * Next steps
 ** TODO Design basic architechture
    Create a spec for how it should work...
