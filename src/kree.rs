@@ -1,3 +1,4 @@
+extern crate shell_words;
 use crate::{keys, client};
 
 use serde_yaml;
@@ -127,28 +128,13 @@ impl Kree {
                         // Root keymap
                         self.client.register_keymap(self.global_keymap.clone(), false);
                         let to_spawn: String = serde_yaml::from_value(to_spawn).unwrap();
-
-                        if cfg!(target_os = "windows") {
-                            match process::Command::new("cmd")
-                                .arg("/C")
-                                .arg(&to_spawn)
-                                .spawn() {
-                                    Ok(_) => println!("Spawning: {}", to_spawn),
-                                    Err(error) => println!("Failed to spawn: {:?}", error),
-                                }
-                        } else {
-                            // Run as exec for commands that are non-standard. (e.g. commands that start with a '+' for example)
-                            let to_spawn = "exec ".to_owned() + &to_spawn.clone().to_string();
-                            match process::Command::new("sh")
-                                .arg("-c")
-                                .arg(&to_spawn)
-                                .spawn() {
-                                    Ok(_) => println!("Spawning: {}", to_spawn),
-                                    Err(error) => println!("Failed to spawn: {:?}", error),
-                                }
-                        }
-
-
+                        let args = shell_words::split(&to_spawn).expect("Failed to parse arguments.");
+                        match process::Command::new(&args[0])
+                            .args(&args[1..])
+                            .spawn() {
+                                Ok(_) => println!("Spawning: {}", to_spawn),
+                                Err(error) => println!("Failed to spawn: {:?}", error),
+                            }
                     },
                     Mapping(keymap) => {
                         println!("Handle keymap: {:?}", keymap);
