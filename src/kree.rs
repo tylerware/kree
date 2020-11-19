@@ -11,6 +11,10 @@ use std::fs::File;
 use std::io::Read;
 use std::process;
 use std::collections::HashMap;
+use std::env;
+
+use regex::Regex;
+use regex::Captures;
 
 use keys::{Event, KeyCombo, Command};
 use keys::Command::*;
@@ -215,6 +219,7 @@ impl Kree {
             },
         }
 
+        content = Self::expand_var(&content);
         let yaml_doc: HashMap<String, Value> = serde_yaml::from_str(&content).unwrap();
 
         Ok(yaml_doc)
@@ -258,6 +263,15 @@ impl Kree {
         Ok(trigger)
     }
 
+    fn expand_var(raw_config: &String) -> String {
+        let re = Regex::new(r"\$\{([a-zA-Z_][0-9a-zA-Z_]*)\}").unwrap();
+        re.replace_all(&raw_config, |caps: &Captures| {
+            match env::var(&caps[1]) {
+                Ok(val) => val,
+                Err(_) => (&caps[0]).to_string(),
+            }
+        }).into_owned().to_string()
+    }
 }
 
 
