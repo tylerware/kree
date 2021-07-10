@@ -11,6 +11,7 @@ xcb = { version = "0.8", features = ["randr"] }
 xcb-util = { version = "0.2", features = ["icccm", "ewmh", "keysyms"] }
 serde = "1.0"
 serde_yaml = "0.8"
+fork = "0.1"
 dirs = "2.0.2"
 clap = "2.33.0"
 shell-words = "1.0.0"

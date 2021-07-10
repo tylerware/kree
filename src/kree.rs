@@ -25,6 +25,7 @@ use client::Event::*;
 pub struct Trigger {
     class: String
 }
+use fork::{fork, Fork};
 
 pub struct Kree {
     pub global_keymap: Vec<(keys::KeyCombo, keys::Command)>,
@@ -133,12 +134,25 @@ impl Kree {
                         self.client.register_keymap(self.global_keymap.clone(), false);
                         let to_spawn: String = serde_yaml::from_value(to_spawn).unwrap();
                         let args = shell_words::split(&to_spawn).expect("Failed to parse arguments.");
-                        match process::Command::new(&args[0])
-                            .args(&args[1..])
-                            .spawn() {
-                                Ok(_) => println!("Spawning: {}", to_spawn),
-                                Err(error) => println!("Failed to spawn: {:?}", error),
-                            }
+                        match fork() {
+                            Ok(Fork::Parent(_)) => (),  
+                            Ok(Fork::Child) => {
+                                println!("Spawning: {}", to_spawn);
+                                match process::Command::new(&args[0])
+                                    .args(&args[1..])
+                                    .spawn() {
+                                        Ok(mut child) => {
+                                            child.wait().expect("Failed to wait..");
+                                            println!("Finished executing: {}", to_spawn);
+                                        },
+                                        Err(error) => println!("Failed to spawn: {:?}", error),
+                                    }
+
+                                // End fork
+                                std::process::exit(0);
+                            },
+                            Err(error) => println!("Fork failed: Failed to spawn: {:?}", error),
+                        }
                     },
                     Mapping(keymap) => {
                         println!("Handle keymap: {:?}", keymap);
